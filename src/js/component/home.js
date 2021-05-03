@@ -1,25 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
-//include images into your bundle
-import rigoImage from "../../img/rigo-baby.jpg";
-
-//create your first component
 export function Home() {
+	// https://stackoverflow.com/questions/43577182/react-js-audio-src-is-updating-on-setstate-but-the-audio-playing-doesnt-chang
+	const audioRef = useRef();
 	const [songs, setSongs] = useState([]);
+	const [songUrl, setSongUrl] = useState("");
+	const API_BASE_URL = "https://assets.breatheco.de/apis/sound/";
 
 	useEffect(() => {
 		init();
 	}, []);
 
-	useEffect(() => {
-		console.log(songs);
-	}, [songs]);
-
 	async function init() {
 		const arrSongs = await getSongs();
-		console.log(arrSongs);
 		const songsMap = mapSongs(arrSongs);
-		console.log(songsMap);
 		setSongs(songsMap);
 	}
 
@@ -42,23 +36,38 @@ export function Home() {
 			});
 	}
 
+	function playSong(songUrlToPlay) {
+		setSongUrl(songUrlToPlay);
+		if (audioRef.current) {
+			audioRef.current.pause();
+			audioRef.current.load();
+			audioRef.current.play();
+		}
+	}
+
 	function mapSongs(songs) {
-		console.log("mapSongs");
 		let jsonMap = [];
 		if (songs) {
 			jsonMap = songs.map(function(song, index) {
-				console.log(song);
-				return <div key={index}> {song.name} </div>;
+				return (
+					<li key={index}>
+						<button
+							onClick={() => playSong(API_BASE_URL + song.url)}>
+							{song.name}
+						</button>
+					</li>
+				);
 			});
 		}
-		console.log(jsonMap);
 		return jsonMap;
 	}
 
 	return (
-		<div className="text-center mt-5">
-			<div className="tracks">{songs}</div>
-			<audio controls></audio>
+		<div className="text-letf mt-5">
+			<ol className="">{songs}</ol>
+			<audio controls ref={audioRef}>
+				<source src={songUrl} type="audio/ogg"></source>
+			</audio>
 		</div>
 	);
 }
